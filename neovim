@@ -1,0 +1,36 @@
+#!/bin/python3
+
+import os
+import stat
+import requests as rq
+
+NVIM_PATH = "/bin/nvim"
+GITHUB_PATH = "https://github.com/neovim/neovim/releases"
+NEOVIM_LATEST = f"{GITHUB_PATH}/latest"
+
+
+def main():
+    with rq.get(NEOVIM_LATEST) as rh:
+        splat = str(rh.url).split("/")
+        version = splat[-1]
+        final_url = f"{GITHUB_PATH}/download/{version}/nvim.appimage"
+        print(f"Downloading appimage found at: {final_url}")
+
+    with rq.get(final_url) as rh:
+        data = rh.content
+        with open("/bin/nvim", "wb+") as fh:
+            fh.write(data)
+
+        print(f"Wrote {len(data)} bytes.")
+
+        st = os.stat(NVIM_PATH)
+        os.chmod(NVIM_PATH, st.st_mode |
+                 stat.S_IEXEC |
+                 stat.S_IXGRP |
+                 stat.S_IXOTH)
+
+        print("OK")
+
+
+if __name__ == "__main__":
+    main()
